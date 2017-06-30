@@ -41,7 +41,7 @@ public class BoardDAO {
 	/*게시판 총 게시글 수*/
 	public int countBoardList() {
 		int boardCnt = sqlSessionTemplate.selectOne("kr.co.adqua.dao.BoardDAO.countBoardList");
-		
+		System.out.println();
 		return boardCnt;
 	}
 	
