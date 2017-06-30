@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.adqua.dao.BoardDAO">
+
+	<!-- 게시판 리스트 호출  -->
+	<select id="selectBoardList" resultType="boardVO">
+	    select boardNo, title, writer, contents, DATE_FORMAT(regDate, "%Y/%c/%e %r") as regDate
+        FROM TB_Board
+        order by boardNo DESC
+	</select>
+	
+    <!-- 게시글 검색  -->
+	<select id="selectSearchList" parameterType="searchVO" resultType="boardVO">
+	    SELECT boardNo, title, contents, writer, regDate, viewCount 
+	    FROM TB_Board
+	    WHERE #{searchOption} like CONCAT('%',#{keyword},'%')
+	    ORDER BY regDate DESC
+	</select>
+
+	<!-- 게시판 총 게시글 수 -->
+	<select id="countBoardList" resultType="int">
+	    select COUNT(boardNo) as cnt
+        FROM TB_Board
+	</select>
+	
+	<!-- 게시판 작성 -->
+	<insert id="insertContents" parameterType="boardVO">
+		insert Into TB_Board (title, writer, contents, password)
+		values(#{title}, #{writer}, #{contents}, #{password});
+	</insert>
+	
+	<!-- 게시판 Detail 페이지 연동  & 수정화면 호출 -->
+	<select id="selectNo" parameterType="int" resultType="boardVO">
+		select boardNo, title, writer, contents, viewCount, DATE_FORMAT(regDate, "%Y/%c/%e %r") as regDate
+		FROM TB_Board
+		where boardNo = #{no}
+	</select>
+	
+    <!-- 게시판 정보 업데이트-->
+    <update id="updateContents" parameterType="boardVO">
+		update TB_Board
+		set title = #{title}, writer = #{writer}, contents = #{contents}
+		where boardNo = #{boardNo} and password = #{password}
+	</update>  
+	
+	<!-- 게시판 삭제 -->
+	<delete id="deleteContents" parameterType="int">
+		delete from TB_Board
+		where boardNo = #{boardNo}
+	</delete>
+		
+</mapper>  
