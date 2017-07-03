@@ -60,21 +60,23 @@
 			form.password.focus();
 			return false;
 		}
-		
 		return true;
 	}
 	
-	var result= "<%=request.getParameter("result")%>"; 
+	//var result = "<c:out value='${requestScope.msg}'/>";
 	
-	if(result != "null"){
-		if (result == "1"){
+	var msg= "<c:out value='${msg}'/>";  
+	console.log(msg);
+	
+	if(msg != ""){
+		alert(msg);
+		/* if (result == "1"){
 			alert("업데이트에 성공하셨습니다.");
-			location.href = "${ pageContext.request.contextPath }/board/boardList.do";
 		}
 		else{
 			alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
-			
-		}
+			location.href = "${ pageContext.request.contextPath }/updateView.do?no='${board.boardNo}'"
+		}*/
 	}
 
 	

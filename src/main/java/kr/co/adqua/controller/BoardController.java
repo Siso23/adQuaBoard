@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.co.adqua.bean.BoardVO;
 import kr.co.adqua.bean.SearchVO;
@@ -79,10 +80,11 @@ public class BoardController {
 	
 	/* 게시판 Detail 페이지 연동  & IP 가져오기*/
 	@RequestMapping(value="/board/detailPage.do")
-	public String detail(@RequestParam("no") int no, Model model) throws Exception{
+	public String detail(@RequestParam("no") int no, @RequestParam(value="msg", required=false) String msg, Model model) throws Exception{
 		
 		BoardVO board = service.detail(no);
 		model.addAttribute("board", board);
+		model.addAttribute("msg", msg);
 		
 		/* IP 가져오기*/ 	
 		HttpServletRequest req = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
@@ -99,31 +101,34 @@ public class BoardController {
 	
 	/*게시판 수정화면 호출*/
 	@RequestMapping(value="/board/updateView.do", method=RequestMethod.GET)
-	public String updateForm(@RequestParam("no") int no, Model model) throws Exception{
+	public String updateForm(@RequestParam("no") int no, @RequestParam(value="msg", required=false) String msg, Model model) throws Exception{
 		
 		BoardVO board = service.detail(no);
 		model.addAttribute("board", board);
+		model.addAttribute("msg", msg);
 
 		return "board/updateForm";
 	}
 	
 	/*게시판 정보 업데이트*/
 	@RequestMapping(value="/board/update.do", method=RequestMethod.POST)
-	public String update(BoardVO board, Model model) throws Exception{
+	public String update(BoardVO board, Model model, RedirectAttributes redirectAttributes) throws Exception{
 		
-	   int updateTrue = service.updateContents(board);
-	   	   
-	   if (updateTrue == 1) {
-		   //model.addAttribute("msg", "업데이트에 성공하셨습니다.");
-		   return "redirect:/board/updateView.do?no=" + board.getBoardNo() + "&result=1";
-	   } else {
-		   //model.addAttribute("msg", "비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
-		   return "redirect:/board/updateView.do?no=" +  board.getBoardNo() + "&result=0";
-	   }
-	   
-	         
+		int updateTrue = service.updateContents(board);
+		String destination;
+
+		if (updateTrue == 1) {
+			redirectAttributes.addAttribute("msg", "업데이트에 성공하셨습니다.");
+			destination = "redirect:/board/detailPage.do?no=" + board.getBoardNo();
+		} else {
+			redirectAttributes.addAttribute("msg", "비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+			destination = "redirect:/board/updateView.do?no=" + board.getBoardNo();
+		}
+		return destination;
 	}
-	
+	 
+
+
 	/*	@RequestMapping(value="/board/update.do", method=RequestMethod.POST)
 	public String update(@RequestParam("no") int no, BoardVO board, Model model) {
 	      

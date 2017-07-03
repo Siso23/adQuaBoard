@@ -28,5 +28,17 @@
 		<a href="${ pageContext.request.contextPath }/board/boardList.do">목록</a>
 		<a href="${ pageContext.request.contextPath }/board/updateView.do?no=${board.boardNo}">수정</a>
 		<a href="${ pageContext.request.contextPath }/board/delete.do?boardNo=${board.boardNo}">삭제</a>
+		
+		
+	<script type="text/javascript" src="${ pageContext.request.contextPath }/js/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript">
+		
+		var msg= "<c:out value='${msg}'/>";  
+		console.log(msg);
+		
+		if(msg != ""){
+			alert(msg);
+		}
+	</script>
 </body>
 </html>
