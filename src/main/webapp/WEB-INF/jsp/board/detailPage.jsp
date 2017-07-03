@@ -14,12 +14,14 @@
 		   	  	 <th>작성자</th>
 		   	  	 <th>조회수</th>
 		   	  	 <th>등록일</th>
+		   	  	 <th>IP-ADDR</th>
 		   	</tr>
 		   	<tr> 
 		   		 <td>${board.title}</td>
 			     <td>${board.writer}</td>
 			     <td>${board.viewCount}</td>
 			     <td>${board.regDate}</td>
+			     <td>${clientIP}</td>
 			     <td>${board.contents}</td>
 			</tr>
 		</table> <br/>

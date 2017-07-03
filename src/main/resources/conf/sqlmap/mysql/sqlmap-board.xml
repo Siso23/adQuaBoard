@@ -6,23 +6,32 @@
 
 	<!-- 게시판 리스트 호출  -->
 	<select id="selectBoardList" resultType="boardVO">
-	    select boardNo, title, writer, contents, DATE_FORMAT(regDate, "%Y/%c/%e %r") as regDate
-        FROM TB_Board
-        order by boardNo DESC
+	    select @ROWNUM:=@ROWNUM+1 as 'rownum', boardNo, title, writer, contents, DATE_FORMAT(regDate, "%Y/%c/%e %r") as regDate, viewCount 
+        FROM TB_Board T, (SELECT @ROWNUM := 0) R
+	    ORDER BY regDate DESC, @ROWNUM DESC 
 	</select>
 	
     <!-- 게시글 검색  -->
 	<select id="selectSearchList" parameterType="searchVO" resultType="boardVO">
-	    SELECT boardNo, title, contents, writer, regDate, viewCount 
-	    FROM TB_Board
-	    WHERE #{searchOption} like CONCAT('%',#{keyword},'%')
-	    ORDER BY regDate DESC
+	    SELECT @ROWNUM:=@ROWNUM+1 as 'rownum', boardNo, title, contents, writer, DATE_FORMAT(regDate, "%Y/%c/%e %r") as regDate, viewCount 
+	    FROM TB_Board T, (SELECT @ROWNUM := 0) R
+		<choose>
+			<when test="searchOption == 'title'"> WHERE title like CONCAT('%',#{keyword},'%')</when>
+			<when test="searchOption == 'contents'"> WHERE contents like CONCAT('%',#{keyword},'%')</when>
+			<when test="searchOption == 'writer'"> WHERE writer like CONCAT('%',#{keyword},'%')</when>
+		</choose>	    
+	    ORDER BY @ROWNUM DESC
 	</select>
 
-	<!-- 게시판 총 게시글 수 -->
-	<select id="countBoardList" resultType="int">
+	<!-- 게시판 총 게시글 수  ajax-->
+	<select id="countBoardList"  parameterType="searchVO" resultType="int">
 	    select COUNT(boardNo) as cnt
         FROM TB_Board
+        <choose>
+			<when test="searchOption == 'title'"> WHERE title like CONCAT('%',#{keyword},'%')</when>
+			<when test="searchOption == 'contents'"> WHERE contents like CONCAT('%',#{keyword},'%')</when>
+			<when test="searchOption == 'writer'"> WHERE writer like CONCAT('%',#{keyword},'%')</when>
+		</choose>	    
 	</select>
 	
 	<!-- 게시판 작성 -->
@@ -38,6 +47,13 @@
 		where boardNo = #{no}
 	</select>
 	
+	<!-- 업데이트 시 비밀번호 일치여부 확인 -->
+	<select id="pwCheckforUpdate" parameterType="boardVO" resultType="int">
+		select Count(boardNo)
+			from TB_Board
+		where boardNo = #{boardNo} and password = #{password}
+	</select>
+	
     <!-- 게시판 정보 업데이트-->
     <update id="updateContents" parameterType="boardVO">
 		update TB_Board
@@ -50,5 +66,6 @@
 		delete from TB_Board
 		where boardNo = #{boardNo}
 	</delete>
-		
+	
+	
 </mapper>  

@@ -2,6 +2,7 @@ package kr.co.adqua.bean;
 
 public class BoardVO {
 
+	private int rownum ;
 	private int boardNo ;
 	private String title ;
 	private String writer ;
@@ -11,6 +12,25 @@ public class BoardVO {
 	private String password;  
 	private int cnt;
 	
+	
+	
+	
+	public BoardVO() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	@Override
+	public String toString() {
+		return "BoardVO [rownum=" + rownum + ", boardNo=" + boardNo + ", title=" + title + ", writer=" + writer
+				+ ", contents=" + contents + ", viewCount=" + viewCount + ", regDate=" + regDate + ", password="
+				+ password + ", cnt=" + cnt + "]";
+	}
+	public int getRownum() {
+		return rownum;
+	}
+	public void setRownum(int rownum) {
+		this.rownum = rownum;
+	}
 	public int getBoardNo() {
 		return boardNo;
 	}
@@ -60,4 +80,6 @@ public class BoardVO {
 		this.cnt = cnt;
 	}
 	
+	
+
 }

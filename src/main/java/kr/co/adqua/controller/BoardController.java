@@ -1,10 +1,9 @@
 package kr.co.adqua.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import kr.co.adqua.bean.BoardVO;
 import kr.co.adqua.bean.SearchVO;
@@ -25,65 +25,36 @@ public class BoardController {
 	@Autowired
 	private BoardService service;
 	
-	/*게시판 리스트 호출   */ 
+	/*게시판 리스트 호출 & 검색 */ 
 	@RequestMapping(value="/board/boardList.do", method=RequestMethod.GET)
-	public String selectBoard (Model model) {
-
+	public String selectBoard (Model model) throws Exception {
+			
 		List<BoardVO> boardList = service.boardList();
 		model.addAttribute("boardList", boardList);
 		
 		return "board/boardList";
 	}
 	
-	/*게시글 검색 */
-	/*@RequestMapping(value="/board/boardList.do", method=RequestMethod.POST)
-	public ModelAndView boardList(@RequestParam(defaultValue="title") String searchOption,
-	                        @RequestParam(defaultValue="") String keyword) throws Exception{
-	    
-	     
-		List<BoardVO> boardList = service.searchList(searchOption, keyword);
-	   
-	    // ModelAndView - 모델과 뷰
-	    ModelAndView mav = new ModelAndView();
-	    mav.addObject("list", list); // 데이터를 저장
-	    mav.addObject("searchOption", searchOption);
-	    mav.addObject("keyword", keyword);
-	    // 데이터를 맵에 저장
-	    Map<String, Object> map = new HashMap<String, Object>();
-	    map.put("boardList", boardList); // boardList
-	    map.put("searchOption", searchOption); // 검색옵션
-	    map.put("keyword", keyword); // 검색키워드
-	    //System.out.println(keyword);
-	   
-	    mav.addObject("boardList", map); // 맵에 저장된 데이터를 mav에 저장
-	    System.out.println(map);	    
-	    mav.setViewName("board/boardList"); // 뷰를 boardList.jsp로 설정
-	    return mav; // boardList.jsp로 boardList가 전달된다.
-	}*/
-	
 	@RequestMapping(value="/board/boardList.do", method=RequestMethod.POST)
-	public String searchList(SearchVO searchVO, Model model){
-		List<BoardVO> searchList = service.searchList(searchVO);
+	public String searchList(SearchVO searchVO, Model model) throws Exception{
+		List<BoardVO> boardList = service.searchList(searchVO);
 		
-		if(searchList.size() > 0) {
-			System.out.println(searchList.get(0).getTitle());
+		/*if(boardList.size() > 0) {
+			System.out.println(boardList.get(0).getTitle());
 		} else {
 			System.out.println("없음");
-		}
-		model.addAttribute("boardList", searchList);
+		}*/
+		model.addAttribute("boardList", boardList);
 		
 		return "board/boardList";
 	}
 	
-	/*게시글 갯수별 보기*/
-	
-	
 	/*게시판 총 게시글 수 확인 for ajax*/
 	@ResponseBody
 	@RequestMapping(value="/board/countBoardList.do")
-	public int countBoardList () {
+	public int countBoardList (SearchVO searchVO) throws Exception{
 		
-		int boardCnt = service.countBoardList();
+		int boardCnt = service.countBoardList(searchVO);
 		//System.out.println("controller boardCnt : " + boardCnt);
 		
 		return boardCnt;
@@ -91,13 +62,13 @@ public class BoardController {
 	
 	/*게시판 작성 */
 	@RequestMapping(value="/board/writeForm.do", method=RequestMethod.GET)
-	public String writeForm() {
+	public String writeForm() throws Exception{
 		
 		return "board/writeForm";
 	}
 	
 	@RequestMapping(value="/board/writeForm.do", method=RequestMethod.POST)
-	public String write(BoardVO boardVO, Model model) {
+	public String write(BoardVO boardVO, Model model) throws Exception{
 		//System.out.println(boardVO);
 		
 		service.insertContents(boardVO);
@@ -106,19 +77,29 @@ public class BoardController {
 		return "redirect:/board/boardList.do" ;
 	}
 	
-	/* 게시판 Detail 페이지 연동 */
+	/* 게시판 Detail 페이지 연동  & IP 가져오기*/
 	@RequestMapping(value="/board/detailPage.do")
-	public String detail(@RequestParam("no") int no, Model model) {
+	public String detail(@RequestParam("no") int no, Model model) throws Exception{
 		
 		BoardVO board = service.detail(no);
 		model.addAttribute("board", board);
+		
+		/* IP 가져오기*/ 	
+		HttpServletRequest req = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+				.getRequest();
+		String ip = req.getHeader("X-FORWARDED-FOR");
+		if (ip == null)
+			ip = req.getRemoteAddr();
+		    
+		//System.out.println(ip);
+		model.addAttribute("clientIP", ip);
 		
 		return "board/detailPage";
 	}
 	
 	/*게시판 수정화면 호출*/
 	@RequestMapping(value="/board/updateView.do", method=RequestMethod.GET)
-	public String updateForm(@RequestParam("no") int no, Model model) {
+	public String updateForm(@RequestParam("no") int no, Model model) throws Exception{
 		
 		BoardVO board = service.detail(no);
 		model.addAttribute("board", board);
@@ -128,11 +109,19 @@ public class BoardController {
 	
 	/*게시판 정보 업데이트*/
 	@RequestMapping(value="/board/update.do", method=RequestMethod.POST)
-	public String update(BoardVO board, Model model) {
-	      
-	   service.updateContents(board);
-      
-      return "redirect:/board/detailPage.do?no=" + board.getBoardNo();
+	public String update(BoardVO board, Model model) throws Exception{
+		
+	   int updateTrue = service.updateContents(board);
+	   	   
+	   if (updateTrue == 1) {
+		   //model.addAttribute("msg", "업데이트에 성공하셨습니다.");
+		   return "redirect:/board/updateView.do?no=" + board.getBoardNo() + "&result=1";
+	   } else {
+		   //model.addAttribute("msg", "비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+		   return "redirect:/board/updateView.do?no=" +  board.getBoardNo() + "&result=0";
+	   }
+	   
+	         
 	}
 	
 	/*	@RequestMapping(value="/board/update.do", method=RequestMethod.POST)
@@ -147,16 +136,12 @@ public class BoardController {
 	
 	/*게시판 삭제*/
 	@RequestMapping("/board/delete.do")
-	public String delete(HttpServletRequest request, @RequestParam("boardNo") int boardNo) {
+	public String delete(HttpServletRequest request, @RequestParam("boardNo") int boardNo) throws Exception{
 	      
-       System.out.println(boardNo);
-      
-       BoardVO board = new BoardVO();
-       board.setBoardNo(boardNo);
+       //System.out.println(boardNo);
       
        service.boardDelete(boardNo);
       
        return "redirect:/board/boardList.do";
-
-   }	  
+   }	
 }
