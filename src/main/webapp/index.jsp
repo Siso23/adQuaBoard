@@ -9,5 +9,6 @@
 <body>
 	<h1>Hello World</h1>
 	<a href="${ pageContext.request.contextPath }/board/boardList.do">Hello World</a>
+	<!--  hello -->
 </body>
 </html>
